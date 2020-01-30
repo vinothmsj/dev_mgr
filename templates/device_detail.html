@@ -1,0 +1,161 @@
+<html>
+<head>
+
+     <script type=text/javascript src="{{url_for('static',filename='jquery.js')}}"></script>
+     <script type=text/javascript src="{{url_for('static',filename='jquery.cookie.js')}}"></script>
+     <script src="{{url_for('static', filename='device_detail.js')}}"></script>
+     <style>
+     #devices,#display_details {
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 90%;
+  align
+}
+
+#display_details  th {
+  border: 3px solid #ddd;
+  padding: 8px;
+ background-color: #33ccff;
+}
+
+#devices th {
+  border: 3px solid #ddd;
+  padding: 8px;
+}
+#devices td, #display_details td {
+ border: 3px solid #ddd;
+  padding: 8px;
+}
+#devices tr:nth-child(even),#display_details tr:nth-child(even){background-color: #E5EAF7;}
+
+#devices tr:hover, #display_details tr:hover {background-color: #ddd;}
+
+#devices th ,#display_details th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #4EBDAD6;
+
+}
+
+input[type=submit] {
+  width: 8%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  font-size: 18px;
+  align:"center";
+  border-radius:30px;
+  width: 100px;
+}
+#add_device , #edit_device , #del_device , #reset{
+  width: 8%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  font-size: 18px;
+  align:"center";
+  border-radius:30px;
+}
+#edit_device , #del_device{
+  width: 6%;
+  }
+#display_details{
+    padding: 14px 20px;
+ }
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+
+.heading {
+    border: 1px solid;
+    border-radius: 12px;
+    background-color: #33ccff;
+    font-family: Trebuchet MS, Arial, Helvetica, sans-serif;
+    font-size: 18px;
+    width:91%;
+    text-align: center;
+    margin-left: 67;
+}
+</style>
+</head>
+<div style="font-size:26px;font-style: italic;" align="center">Multicast Device Manager</div>
+<div align="right" style="margin-right:96px"><a href="logout">Logout</a> </div>
+ <form id='add-device' method='post'>
+      <p class="heading">Add/Edit Device Details</p>
+      <div align="center">
+
+          <table id="devices" align="center">
+               <tr hidden>
+                    <th  >Device Name</th>
+                    <th><input name="dev_id" id="dev_id_id" type="text" value="0" size="75" required style="font-size :small"> </th>
+               </tr>
+               <tr>
+                    <th>Device Name</th>
+                    <th><input name="dev_name" id="dev_name_id" type="text"  size="75" required style="font-size :small"> </th>
+               </tr>
+               <tr>
+                    <th>Device Console</th>
+                    <th><input name="dev_console" type="text" id="dev_console_id" size="75" required style="font-size :small"> </th>
+               </tr>
+                 <tr>
+                    <th>Device Management</th>
+                    <th><input name="dev_mgmt" type="text" id="dev_mgmt_id" size="75" required style="font-size :small"> </th>
+               </tr>
+                 <tr>
+                    <th>Device Power</th>
+                    <th><input name="dev_power" type="text" id="dev_power_id" size="75" required style="font-size :small"> </th>
+               </tr>
+                 <tr>
+                    <th>Part of Topology</th>
+                    <th><input name="dev_topo" type="text" id="dev_topo_id" size="75" required style="font-size :small"> </th>
+               </tr>
+
+
+          </table>
+           <input type="submit" id="add_device" value="Save Device" >
+            <input type="submit" id="reset" value="Reset" >
+           </div>
+ </form>
+<p class="heading">
+    Device Information
+</p>
+<div align="right" style="margin-right:95px">
+     <input type="submit" id="reserve_dev" value="Reserve" >
+    <input type="submit" id="edit_device" value="Edit">
+    <input type="submit" id="del_device" value="Delete" >
+</div>
+<form id="display_device">
+
+    <div align="center">
+        <table id="display_details">
+
+            <tr>
+                <th> Device Id </th>
+                <th> Device Name</th>
+                <th> Device Console</th>
+                <th> Device Management</th>
+                <th> Device Power</th>
+                <th> Part Of Topology</th>
+                <th> Used By</th>
+            </tr>
+            <tbody id="display_details_tbody">
+
+            </tbody>
+        </table>
+
+    </div>
+
+</form>
+</html>

@@ -1,0 +1,63 @@
+<html>
+   <head>
+      <script type=text/javascript src="{{url_for('static',filename='jquery.js')}}"></script>
+      <script src="{{url_for('static', filename='login.js')}}"></script>
+      <style>
+         form {
+         margin:0 auto;
+         width:300px
+         }
+         input {
+         margin-bottom:3px;
+         padding:10px;
+         width: 100%;
+         border:1px solid #CCC
+         }
+         button {
+         padding:10px
+         }
+         label {
+         cursor:pointer
+         }
+         #form-switch {
+         display:none
+         }
+         #register-form {
+         display:none
+         }
+         #form-switch:checked~#register-form {
+         display:block
+         }
+         #form-switch:checked~#login-form {
+         display:none
+         }
+         input[type=submit]:hover {
+         background-color: #45a049;
+         }
+         div {
+         border-radius: 5px;
+         background-color: #f2f2f2;
+         padding: 20px;
+         }
+      </style>
+   </head>
+  <div style="font-size:26px;font-style: italic;" align="center">Multicast Device Manager</div>
+   <div>
+      <input type='checkbox' id='form-switch'>
+      <form id='login-form' method='post'>
+         <h2>User Login</h2>
+         <h4>{{ error }}</h4>
+         <input type="text" id="userid" name="n_userid" placeholder="Username" required>
+         <button id="login" type='submit'>Login</button>
+         <label for='form-switch'><span>Register</span></label>
+      </form>
+      <form id='register-form' action="{{ url_for('signup') }}" method='post'>
+         <h2>User SignUp</h2>
+         <input type="text"   id="reg_userid" name = "n_reg_userid" placeholder="Username" required>
+         <input type=text" id="reg_email" name="n_reg_email" placeholder="E-Mail" required>
+
+         <button id="register" type='submit'>Register</button>
+         <label for='form-switch'>Already Member ? Sign In Now..</label>
+      </form>
+   </div>
+</html>
