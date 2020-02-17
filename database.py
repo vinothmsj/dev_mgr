@@ -1,6 +1,8 @@
 import sqlite3 as driver
 connection = None
+from threading import Lock
 
+lock = Lock()
 
 def get_user_id(username):
     global connection
@@ -136,8 +138,9 @@ def insert_user_data(local_user_instance):
                                 "'{}'".format(str(local_user_instance.email))) + ", " + \
                                "(SELECT IFNULL(MAX(id), 0) + 1 FROM  device_user_details))"
             print(insert_query)
-            cursor.execute(insert_query)
-            connection.commit()
+            with lock:
+                cursor.execute(insert_query)
+                connection.commit()
             cursor.close()
             print("Record inserted username:", local_user_instance.username)
         else:
@@ -175,8 +178,9 @@ def add_update_device(device_details):
                             "'{}'".format(str(device_details.dev_topo)) + ", " \
                             "'{}'".format(str(device_details.usedby)) + ")"
             print(insert_query)
-            cursor.execute(insert_query)
-            connection.commit()
+            with lock:
+                cursor.execute(insert_query)
+                connection.commit()
             cursor.close()
             if device_details.dev_id != 0:
                 device_id = get_dev_id()
@@ -192,8 +196,9 @@ def delete_device(dev_id):
             cursor = connection.cursor()
             delete_query  = "DELETE FROM device_mgmt_details WHERE dev_id =" + \
                             "'{}'".format(str(dev_id))
-            cursor.execute(delete_query)
-            connection.commit()
+            with lock:
+                cursor.execute(delete_query)
+                connection.commit()
             cursor.close()
     except Exception as error:
         return error

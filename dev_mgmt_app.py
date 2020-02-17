@@ -2,29 +2,15 @@ import flask
 from flask import render_template, Flask, redirect, json ,jsonify , url_for
 from flask import request
 import device_mgmt_class
-from flask_login import LoginManager, current_user, login_user , login_required , logout_user
 from flask import jsonify
-from flask_mail import Mail, Message
 import database
+import smtplib
 
-'''
-mail_settings = {
-    "MAIL_SERVER": 'smtp.gmail.com',
-    "MAIL_PORT": 465,
-    "MAIL_USE_TLS": False,
-    "MAIL_USE_SSL": True,
-    "MAIL_USERNAME": "device_mgr",
-    "MAIL_PASSWORD": ""
-}
-'''
+
 device_detail_array = ['dev_id', 'dev_name' ,'dev_console', 'dev_mgmt','dev_power', 'used_by', 'dev_topo']
 
 app = Flask(__name__)
 
-'''
-app.config.update(mail_settings)
-mail = Mail(app)
-'''
 
 app.config['SECRET_KEY'] = 'you-will-never-guess'
 app.config['TESTING'] = False
@@ -43,7 +29,7 @@ def login():
             to the device detail page
             '''
             print("coming here")
-            resp = flask.make_response(redirect(url_for('device_detail_operation')))
+            resp = flask.make_response(redirect(url_for('get_device_page')))
             resp.set_cookie('user', username)
             return resp
         else:
@@ -58,7 +44,7 @@ def login():
             '''
             The cookie is set, which means that the user is already authenticated
             redirect the user to device detail page'''
-            resp = flask.make_response(redirect(url_for('device_detail_operation')))
+            resp = flask.make_response(redirect(url_for('get_device_page')))
             return resp
 
 
@@ -82,38 +68,6 @@ def signup():
         return render_template('login.html', error=error)
 
 
-@app.route('/device_detail', methods=['GET', 'POST'])
-def device_detail_operation():
-    error = None
-    if request.method == 'POST':
-        form_device_id = request.form['dev_id']
-        print("FormId", form_device_id)
-        device_name = request.form['dev_name']
-        device_console = request.form['dev_console']
-        device_mgmt =  request.form['dev_mgmt']
-        device_power = request.form['dev_power']
-        device_topo = request.form['dev_topo']
-        used_by = None
-        """
-        Get the details from the form and update the DB.
-        """
-        local_device_instance = device_mgmt_class.DeviceMgmt(form_device_id, device_name,device_console,device_mgmt,
-                                                             device_power, device_topo, used_by)
-        device_id = database.add_update_device(local_device_instance)
-        if form_device_id == 0:
-            local_device_instance.dev_id = device_id
-    else:
-        '''
-            If the user is directly trying to access the page 
-            without logging, re-direct to the login page.
-        '''
-        username = request.cookies.get('user')
-        if username is None:
-            error = "Please login to access this page"
-            return redirect(url_for('login'))
-    return render_template('device_detail.html')
-
-
 @app.route('/device_detail/reserve_device', methods=['POST'])
 def reserve_device():
     if request.method == 'POST':
@@ -133,6 +87,63 @@ def reserve_device():
     else:
         pass
     return 0
+
+
+@app.route('/device_detail/request_device', methods=['POST'])
+def request_device():
+        if request.method == 'POST':
+            jsondata = request.get_json()
+            try:
+                msg_to = jsondata['used_by'] + '@cisco.com'
+                msg_sub = 'Device Request : ' + jsondata['dev_name']
+                TEXT = 'User ' + request.cookies.get('user') + " is requesting device :" + jsondata['dev_name']
+                message = 'Subject: {}\n\n{}'.format(msg_sub, TEXT)
+                s = smtplib.SMTP('localhost')
+                s.sendmail('dev_mgr', msg_to, message)
+                s.quit()
+                return render_template('device_detail.html')
+            except:
+                return render_template('device_detail.html', error="Error sending Email")
+        else:
+            return render_template('device_detail.html')
+
+
+
+@app.route('/device_detail/save_edit_device', methods=['POST'])
+def device_detail_operation():
+    error = None
+    if request.method == 'POST':
+        jsondata = request.get_json()
+        form_device_id = jsondata['dev_id']
+        form_device_id = jsondata['dev_id']
+        device_name = jsondata['dev_name']
+        device_console = jsondata['dev_console']
+        device_mgmt =  jsondata['dev_mgmt']
+        device_power = jsondata['dev_power']
+        device_topo = jsondata['dev_topo']
+        used_by = None
+        """
+        Get the details from the form and update the DB.
+        """
+        local_device_instance = device_mgmt_class.DeviceMgmt(form_device_id, device_name,device_console,device_mgmt,
+                                                             device_power, device_topo, used_by)
+        device_id = database.add_update_device(local_device_instance)
+        if form_device_id == 0:
+            local_device_instance.dev_id = device_id
+    return flask.make_response(redirect(url_for('get_device_page')))
+
+
+@app.route('/device_detail/',methods=['GET'])
+def get_device_page():
+    '''
+        If the user is directly trying to access the page
+         without logging, re-direct to the login page.
+    '''
+    username = request.cookies.get('user')
+    if username is None:
+        error = "Please login to access this page"
+        return redirect(url_for('login'))
+    return render_template('device_detail.html')
 
 
 @app.route('/device_detail/get_device', methods=['GET', 'POST','DELETE'])
@@ -155,10 +166,10 @@ def fetch_all_devices():
     elif request.method == 'DELETE':
         jsondata = request.get_json()
         database.delete_device(jsondata['dev_id'])
-        return device_detail_operation()
+        return get_device_page()
 
 
-@app.route('/logout')
+@app.route('/logout',methods=["POST"])
 def logout():
     '''
     Delete the cookie, this de-authenticates the user.
@@ -166,7 +177,7 @@ def logout():
     '''
     username = request.cookies.get('user')
     print(username)
-    resp = flask.make_response(redirect(url_for('login')))
+    resp = flask.make_response(redirect('/login'))
     resp.delete_cookie('user' , username)
     return resp
 
@@ -177,14 +188,7 @@ def invoke_db_conn():
 
     '''
     print("Connecting to DB.....")
-    '''
-    with app.app_context():
-        msg = Message(subject="Hello",
-                      sender="dev_mgr",
-                      recipients=["vinothj.91@gmail.com"],  # replace with your email for testing
-                      body="This is a test email I sent with Gmail and Python!")
-        mail.send(msg)
-        '''
+
     connect = database.database_conn()
     if connect is None:
         print("No Db Connection")
@@ -196,5 +200,4 @@ def invoke_db_conn():
 
 if __name__ == '__main__':
     invoke_db_conn()
-    app.run(debug=True)
-
+    app.run(debug=True,host='0.0.0.0',port='5500')

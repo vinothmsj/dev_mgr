@@ -1,5 +1,4 @@
 $(document).ready(function() {
-
     fetch_devices();
     var global_get_data =[];
     var content =""
@@ -7,6 +6,7 @@ $(document).ready(function() {
     function populate_device_detail(db_data)
     {
         global_get_data = db_data;
+        $('#username').text("Hi " + $.cookie('user') +" !!" );
         for(i =0;i<db_data.length;i++)
         {
             var entry = db_data[i]
@@ -46,15 +46,30 @@ $(document).ready(function() {
          }
 
     });
-/* clear the device details form*/
-      $('#reset').on('click', function(){
-       console.log(content[2])
-       $('#dev_id_id').val("0")
+    $('#add_device').on('click',function(){
+        var entry ={};
+        entry.dev_id = $('#dev_id_id').val();
+        entry.dev_name=  $('#dev_name_id').val();
+        entry.dev_console= $('#dev_console_id').val();
+        entry.dev_mgmt= $('#dev_mgmt_id').val();
+        entry.dev_power =  $('#dev_power_id').val();
+        entry.dev_topo= $('#dev_topo_id').val();
+        add_edit_device(entry);
+    });
+    function reset_fields()
+    {
+       $('#dev_id_id').val("0");
        $('#dev_name_id').val("");
-       $('#dev_console_id').val("")
-       $('#dev_mgmt_id').val("")
-       $('#dev_power_id').val("")
-       $('#dev_topo_id').val("")
+       $('#dev_console_id').val("");
+       $('#dev_mgmt_id').val("");
+       $('#dev_power_id').val("");
+       $('#dev_topo_id').val("");
+
+
+    }
+/* clear the device details form*/
+    $('#reset').on('click', function(){
+       reset_fields();
     });
 /* operation to reserve the device */
 $('#reserve_dev').on('click', function(){
@@ -67,8 +82,8 @@ $('#reserve_dev').on('click', function(){
          reserve_device(entry);
        }
        else if ($('#reserve_dev').hasClass('request'))
-       {
-        alert("Device Already Used by " + entry.used_by )
+       { /* send a mail  */
+            request_device(entry);
        }
        else
        {
@@ -77,6 +92,11 @@ $('#reserve_dev').on('click', function(){
          reserve_device(entry);
 
        }
+});
+
+$('#logout').on('click',function(){
+        action_logout();
+
 });
 /* get the entry/device that user want to perform action on.
 Right now this is messy, see if we can get a better  way to do it */
@@ -155,10 +175,16 @@ Right now this is messy, see if we can get a better  way to do it */
   /* Ajax call for the deleting the device details.*/
     $('#del_device').on('click', function(){
 
+
         var entry = get_entry();
 
         if(check_valid_oper(entry) == false)
         {
+            return false;
+        }
+        if(confirm("Are you sure you want to delete the Device Details?") == false)
+        {
+            alert("Bravo ;)")
             return false;
         }
         var str =
@@ -198,4 +224,72 @@ Right now this is messy, see if we can get a better  way to do it */
         });
     }
 
+        /* Ajax call for the requesting the device.*/
+    function request_device(entry)
+    {
+    $.ajax({
+            url: '/device_detail/request_device',
+            contentType: 'application/json',
+            type: 'POST',
+            data: JSON.stringify(entry),
+            success: function(response){
+               console.log('response' + response);
+               location.reload();
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+    }
+
+        /* Ajax call for the requesting the device.*/
+    function add_edit_device(entry)
+    {
+         $.ajax({
+            cache: false,
+            url: '/device_detail/save_edit_device',
+            contentType: 'application/json',
+            type: 'POST',
+            data: JSON.stringify(entry),
+            success: function(response){
+               console.log('response' + response);
+               location.reload();
+               reset_fields();
+               reset_fields();
+            },
+            error: function(error){
+                console.log(error);
+            }
+            });
+
+    }
+    function get_device_detail_page()
+    {
+         $.ajax({
+            url: '/device_detail',
+            contentType: 'application/json',
+            type: 'GET',
+            success: function(response){
+              location.reload();
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+    }
+
+    function action_logout()
+    {
+            $.ajax({
+            url: '/logout',
+            contentType: 'application/json',
+            type: 'POST',
+            success: function(response){
+            location.reload();
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+    }
 })
